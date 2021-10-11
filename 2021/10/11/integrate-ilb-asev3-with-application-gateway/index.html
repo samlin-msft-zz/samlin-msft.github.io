@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"samlin-msft.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0RM9XRL718"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0RM9XRL718');
+</script>
+
+  <meta name="description" content="Azure App Service Environment 是一個部署於客戶的 VNet 以及 Subnet 的 App Service 環境, 他可以將 App Service 的存取部署為公開存取點 (public endpoint) 或私有存取點 (private endpoint). 當部署為私有存取點的 ASE, 在內部會生成一個內部負載平衡器 (internal load balanc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Integrate ILB ASEv3 with Application Gateway">
+<meta property="og:url" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/index.html">
+<meta property="og:site_name" content="雜七雜八。有的沒的">
+<meta property="og:description" content="Azure App Service Environment 是一個部署於客戶的 VNet 以及 Subnet 的 App Service 環境, 他可以將 App Service 的存取部署為公開存取點 (public endpoint) 或私有存取點 (private endpoint). 當部署為私有存取點的 ASE, 在內部會生成一個內部負載平衡器 (internal load balanc">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011152138347.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011155312176.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011160529160.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011155613716.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011164224837.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170344207.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170358104.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170426683.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170557863.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170819884.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170719016.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170904979.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211012015548481.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170928311.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171017076.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171028680.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171112275.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211012021450038.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011161955209.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171252850.png">
+<meta property="og:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171302503.png">
+<meta property="article:published_time" content="2021-10-11T06:52:32.000Z">
+<meta property="article:modified_time" content="2021-10-11T18:37:33.055Z">
+<meta property="article:author" content="Sam Lin">
+<meta property="article:tag" content="App Service Environment">
+<meta property="article:tag" content="ASEv3">
+<meta property="article:tag" content="Application Gateway">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011152138347.png">
+
+<link rel="canonical" href="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Integrate ILB ASEv3 with Application Gateway | 雜七雜八。有的沒的</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0RM9XRL718"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-0RM9XRL718');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">雜七雜八。有的沒的</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avator.png">
+      <meta itemprop="name" content="Sam Lin">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雜七雜八。有的沒的">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Integrate ILB ASEv3 with Application Gateway
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-10-11 14:52:32" itemprop="dateCreated datePublished" datetime="2021-10-11T14:52:32+08:00">2021-10-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-10-12 02:37:33" itemprop="dateModified" datetime="2021-10-12T02:37:33+08:00">2021-10-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/App-Service-Environment/" itemprop="url" rel="index"><span itemprop="name">App Service Environment</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/2021/10/11/integrate-ilb-asev3-with-application-gateway/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2021/10/11/integrate-ilb-asev3-with-application-gateway/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/app-service/environment/intro">Azure App Service Environment</a> 是一個部署於客戶的 VNet 以及 Subnet 的 App Service 環境, 他可以將 App Service 的存取部署為公開存取點 (public endpoint) 或私有存取點 (private endpoint). 當部署為私有存取點的 ASE, 在內部會生成一個內部負載平衡器 (internal load balancer) 的 App Service 環境, 稱為 ILB App Service Environment.</p>
+<p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/application-gateway/overview">Azure Application Gateway</a> 是一個 Layer 7 流量負載平衡器的虛擬設備 (virtual appliance), 取決於網站路由設定以及根據 HTTP 請求內容, 管理應用程式存取的存取, 支援 TLS/SSL offloading, 也可以附加應用程式防火牆 (WAF) 功能.</p>
+<p>整合 ASE 以及 Application Gateway 可以將 App Service 安全的隔離在 ILB ASE 中, 使用 Application Gateway/WAF 開放給外部存取並使用 應用程式防火牆來做網站安全防護.</p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011152138347.png" alt="image-20211011152138347"></p>
+<p>本篇文章將帶領您:</p>
+<ul>
+<li>建立一個 Azure Application Gateway</li>
+<li>設定 Application Gateway 並指向您 ILB ASEv3 中的 App Service</li>
+</ul>
+<h2 id="先決條件"><a href="#先決條件" class="headerlink" title="先決條件"></a>先決條件</h2><p>整合 Application Gateway 以及 ILB App Service Environment 時, 您將需要以下的準備事項:</p>
+<ul>
+<li>一個 ILB ASE 環境</li>
+<li>ILB ASE 所對應的的私有 DNS 區域 (private dns zone)</li>
+<li>一個執行於 ILB ASE 環境的 App Service</li>
+<li>一個 App Service 使用並且可以從 Internet 解析的網域名稱</li>
+<li>一張 Application Gateway 綁定的公開發行且有效的憑證</li>
+</ul>
+<h3 id="ILB-ASE-環境"><a href="#ILB-ASE-環境" class="headerlink" title="ILB ASE 環境"></a>ILB ASE 環境</h3><p>您可以從 Azure Portal 建立 ILB ASE 環境, 參考  <a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/app-service/environment/create-ilb-ase">Create an ILB ASE with ARM - Azure App Service Environment</a> 或由 Template 建立, 參考 <a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/app-service/environment/create-from-template">Create an ASE with ARM - Azure App Service Environment</a>. </p>
+<ul>
+<li>建立完成 ILB ASE 後, 預設所使用的根網域將會是 <code>&lt;YourAseName&gt;.appserviceenvironment.net</code> </li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011155312176.png" alt="image-20211011155312176"></p>
+<ul>
+<li>建立完成 ILB ASE 後, 會指派 internel load balancer 的 IP 做為 Inbound Address</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011160529160.png" alt="image-20211011160529160"></p>
+<h3 id="私有-DNS-區域"><a href="#私有-DNS-區域" class="headerlink" title="私有 DNS 區域"></a>私有 DNS 區域</h3><p>私有 DNS 區域可以在建立 ILB ASE 時同時建立, 若建立 ASE 時沒有建立, 可以在 ASE 完成後再行建立, 透過 Azure Portal 建立可以參考 <a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/dns/private-dns-getstarted-portal">Quickstart - Create an Azure private DNS zone using the Azure portal</a>, 對應的 Record Sets 如下:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>*</td>
+<td>A</td>
+<td>ASE inbound address</td>
+</tr>
+<tr>
+<td>@</td>
+<td>A</td>
+<td>ASE inbound address</td>
+</tr>
+<tr>
+<td>@</td>
+<td>SOA</td>
+<td>ASE DNS name</td>
+</tr>
+<tr>
+<td>*.scm</td>
+<td>A</td>
+<td>ASE inbound address</td>
+</tr>
+</tbody></table>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011155613716.png" alt="image-20211011155613716"></p>
+<h3 id="App-Service-on-ILB-ASE"><a href="#App-Service-on-ILB-ASE" class="headerlink" title="App Service on ILB ASE"></a>App Service on ILB ASE</h3><p>建立完成 ILB ASE 後, 您可以從 Azure Portal 上建立 App Service, 其中在選擇 “<strong>Region</strong>“ 時, 要從下拉選單中選取您所建立的  ILB ASE, 才能將 App Service 建立到 ILB ASE 上.</p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011164224837.png" alt="image-20211011164224837"></p>
+<h3 id="App-Service-的網域名稱"><a href="#App-Service-的網域名稱" class="headerlink" title="App Service 的網域名稱"></a>App Service 的網域名稱</h3><p>要從 Internet 可以連線到 Application Gateway 上, 要先有一個可以從 Internet 存取到的公開網域, 以本文為例, 使用的公開網域的名稱為 <code>asabuludemo.com</code>, 所規劃的 app service 公開的網域名稱為 <code>app.asabuludemo.com</code> , 對應的 IP 位址將會是後面所建立的 Application Gateway 公開 IP.</p>
+<h3 id="公開發行且有效的憑證"><a href="#公開發行且有效的憑證" class="headerlink" title="公開發行且有效的憑證"></a>公開發行且有效的憑證</h3><p>前述所需要的 app 公開網域名稱若需要綁定 TLS/SSL 憑證, 對於公開網站, 強烈建議一定要綁定 TLS/SSL 憑證加密傳輸通道. 因此您需要準備一張公開憑證對應到你的公開網域, 憑證<strong>一般名稱 (Common Name;CN)</strong> 以及<strong>主題備用名稱 (Subject Alternative Name;SAN)</strong> 分別設定如下:</p>
+<ul>
+<li>Common Name: <code>*.&lt;yourdomainname&gt;</code> 例如 <code>*.asabuludemo.com</code></li>
+<li>Subject Alternative Name: <code>*.scm.&lt;yourdomainname&gt;</code> 例如 <code>*.scm.asabuludemo.com</code>, 此 SAN 設定可以允許您從 Application Gateway 存取後台的 App 網站管理介面, 如果考量不對外開放後台管理介面從 Application Gateway 進入, 則可以忽略這個 SAN 設定.</li>
+</ul>
+<p>您需要將憑證檔案儲存成含有私鑰的 .pfx 格式以便後續建立 Application Gateway 時匯入.</p>
+<h2 id="建立-Application-Gateway"><a href="#建立-Application-Gateway" class="headerlink" title="建立 Application Gateway"></a>建立 Application Gateway</h2><p>本範例將使用 Azure Portal 建立 Application Gateway 整合 ILB ASE 環境</p>
+<h3 id="從-Azure-Portal-建立-Application-Gateway"><a href="#從-Azure-Portal-建立-Application-Gateway" class="headerlink" title="從 Azure Portal 建立 Application Gateway"></a>從 Azure Portal 建立 Application Gateway</h3><p>開啟 Azure Portal, 選取 <strong>“New”</strong> &gt; <strong>“Network”</strong> &gt; <strong>“Application Gateway”</strong> 建立 Application Gateway</p>
+<h3 id="Basics-設定"><a href="#Basics-設定" class="headerlink" title="Basics 設定"></a>Basics 設定</h3><p>依照設定精靈, 在 Basics 設定選項中, 您需要設定必要的參數, 其中在 <strong>“Tier”</strong> 下拉清單中, 您可以選擇 WAF V2 附加 WAF 功能或 Standard V2 暫時不附加 WAF 功能, 您可在設定完成後再行附加 WAF 功能.</p>
+<p>![image-20211011170309171.png] (image-20211011170309171.png)</p>
+<h3 id="Frontends-設定"><a href="#Frontends-設定" class="headerlink" title="Frontends 設定"></a>Frontends 設定</h3><p>在 Frontends 設定選項中, 您需要決定 Application Gateway 所接聽的 IP 為公開或私有, 或兩者皆指派, 若您選取私有 IP, 您必須指派 Application Gateway Subnet 中尚未被使用的靜態 IP 做為私有 IP. 本範例以公開 IP 設定為例.</p>
+<ul>
+<li>公開 IP - 您需要綁定一個公開 IP 做為 Application Gateway 公開存取端點. 請紀錄這個 IP, 後續新增 DNS 記錄時會需要使用.</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170344207.png" alt="image-20211011170344207.png"></p>
+<h3 id="Backends-設定"><a href="#Backends-設定" class="headerlink" title="Backends 設定"></a>Backends 設定</h3><p>在 Backends 設定選項中, 您需要後端 Pool 名稱, 並且在 <strong>“Target type”</strong> 中, 選擇 <strong>“App Services”</strong> 或 <strong>“IP address or FQDN”</strong>, 本範例選擇 <strong>“app services”</strong> 並指派對應的 <strong>“Target”</strong></p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170358104.png" alt="image-20211011170358104"></p>
+<h3 id="Configuration-設定"><a href="#Configuration-設定" class="headerlink" title="Configuration 設定"></a>Configuration 設定</h3><p>在 Configuration 設定選項中, 您需要新增一個<strong>路由規則</strong>, 請點選 <strong>“Add a routing rule”</strong> 進行設定</p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170426683.png"></p>
+<p>路由規則是由 <strong>“Listener”</strong> 和 <strong>“Backend targets”</strong> 設定組合</p>
+<ul>
+<li>Listener 設定說明如下:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>參數名稱</th>
+<th>參數值</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Rule name</td>
+<td>例: https-routingrule</td>
+<td>路由名稱</td>
+</tr>
+<tr>
+<td>Listener name</td>
+<td>例: https-listener</td>
+<td>接聽名稱</td>
+</tr>
+<tr>
+<td>Frontend IP</td>
+<td>Public</td>
+<td>對外接聽, 設定為 Public</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>HTTPS</td>
+<td>採用 TLS/SSL 加密</td>
+</tr>
+<tr>
+<td>Port</td>
+<td>443</td>
+<td>預設 HTTPS Port</td>
+</tr>
+<tr>
+<td>Https Settings</td>
+<td>Upload a certificate</td>
+<td>上傳一個具有私鑰且 CN 名稱對應為 app 網域名稱的 .pfx 格式公開憑證檔案</td>
+</tr>
+<tr>
+<td>Listener type</td>
+<td>Multi site</td>
+<td>Application Gateway 允許接聽多個網站</td>
+</tr>
+<tr>
+<td>Host type</td>
+<td>Multiple/Wildcard</td>
+<td>可以設定多個或 wildcard 網站名稱</td>
+</tr>
+<tr>
+<td>Host name</td>
+<td>例: app.asabuludemo.com</td>
+<td>設定為 app 網站外部可存取的網域名稱</td>
+</tr>
+</tbody></table>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170557863.png" alt="image-20211011170557863"></p>
+<ul>
+<li>Backend targets 設定包含 <strong>“Backend Pool”</strong> 以及 <strong>“HTTP setting”</strong>, Backend pool 已經在前面步驟設定, 因此您需要新增一個 HTTP setting</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170819884.png" alt="image-20211011170819884"></p>
+<ul>
+<li>HTTP 設定主要參數說明如下:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>參數名稱</th>
+<th>參數值</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTP setting name</td>
+<td>例: https-setting</td>
+<td>HTTP 設定名稱</td>
+</tr>
+<tr>
+<td>Backend protocol</td>
+<td>HTTPS</td>
+<td>採用 TLS/SSL 加密</td>
+</tr>
+<tr>
+<td>Backend port</td>
+<td>443</td>
+<td>預設 HTTPS Port</td>
+</tr>
+<tr>
+<td>Use well known CA certificate</td>
+<td>Yes</td>
+<td>由於內建後端的 ILB ASE 環境預設的 .appserviceenvironment.net 網域是有效的公開憑證, 因此在 Application Gateway 中只需選取 well known CA trusted root certificate</td>
+</tr>
+<tr>
+<td>Override with new host name</td>
+<td>Yes</td>
+<td>後端連線到 ILB ASE 上的 app 需要進行 host name header 置換</td>
+</tr>
+<tr>
+<td>Host name override</td>
+<td>Override with specific domain name<br />例: app.asev3-ilb-20211008.appserviceenvironment.net</td>
+<td>Host name 需要指派到 ILB ASE 上的 app 對應的網域名稱</td>
+</tr>
+</tbody></table>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170719016.png" alt="image-20211011170719016"></p>
+<h2 id="整合-Application-Gateway-設定"><a href="#整合-Application-Gateway-設定" class="headerlink" title="整合 Application Gateway 設定"></a>整合 Application Gateway 設定</h2><p>Application Gateway 建立完成後, 您需要檢查 Health Probes 狀況, 若出現以下的錯誤時, 表示 Application Gateway 無法正確解析到 ILB ASE 上的 app 網域名稱, 您必須先設定好 Private DNS Zone 虛擬網路連結設定</p>
+<p><code>Cannot connect to backend server. Check whether any NSG/UDR/Firewall is blocking access to the server. Check if application is running on correct port.</code></p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170904979.png" alt="image-20211011170904979"></p>
+<h3 id="Private-DNS-Zone-虛擬網路連結設定"><a href="#Private-DNS-Zone-虛擬網路連結設定" class="headerlink" title="Private DNS Zone 虛擬網路連結設定"></a>Private DNS Zone 虛擬網路連結設定</h3><ul>
+<li>進入 <strong>Private DNS Zone</strong> &gt; <strong>“Virtual network links”</strong> &gt; <strong>“+Add”</strong> 新增虛擬網路連結 </li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211012015548481.png" alt="image-20211012015548481"></p>
+<ul>
+<li>輸入連結名稱並選擇訂閱上的 Application Gateway 所在的虛擬網路名稱進行連結</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170928311.png"></p>
+<h3 id="設定-Health-Probe"><a href="#設定-Health-Probe" class="headerlink" title="設定 Health Probe"></a>設定 Health Probe</h3><p>若 Health probe 已經在 Application Gateway 建立時已經產生, 您可以先將其刪除並重新設定 Health Probe</p>
+<ul>
+<li>Health Probe 設定主要參數說明如下:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>參數名稱</th>
+<th>參數值</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Health Probe</td>
+<td>例: https-probe</td>
+<td>健康探查名稱</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>HTTPS</td>
+<td>採用 TLS/SSL 加密</td>
+</tr>
+<tr>
+<td>Host</td>
+<td>例: app.asev3-ilb-20211008.appserviceenvironment.net</td>
+<td>Host name 需要指派到 ILB ASE 上的 app 對應的網域名稱</td>
+</tr>
+<tr>
+<td>Pick host name form backend HTTP settings</td>
+<td>No</td>
+<td>不需要從後端取得 Host name</td>
+</tr>
+<tr>
+<td>Pick port from backend HTTP settings</td>
+<td>Yes</td>
+<td>從後端取得 Port</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>/</td>
+<td>使用預設的 root 路徑</td>
+</tr>
+<tr>
+<td>HTTP settings</td>
+<td>https-setting</td>
+<td>使用 Application Gateway 中的 HTTP setting</td>
+</tr>
+</tbody></table>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171017076.png" alt="image-20211011171017076"></p>
+<p>測試 Health Probe 狀態為綠燈後, 新增至 Application Gateway</p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171028680.png" alt="image-20211011171028680"></p>
+<ul>
+<li>確認 Backend health 狀態為 Health</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171112275.png" alt="image-20211011171112275"></p>
+<h3 id="設定-DNS-對應"><a href="#設定-DNS-對應" class="headerlink" title="設定 DNS 對應"></a>設定 DNS 對應</h3><p>從 Internet 存取 Application Gateway 時, 需要先設定好 DNS 對應</p>
+<ul>
+<li>Application Gateway 公開 IP 可以從 Application Gateway 的 Frondend IP configurations 設定取得</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211012021450038.png" alt="image-20211012021450038"></p>
+<ul>
+<li>設定 DNS 對應, 以 Azure DNS 服務為例, 您可以新增一筆記錄, 對應到 Application Gateway 所設定的網站網域名稱</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011161955209.png" alt="image-20211011161955209"></p>
+<h3 id="驗證連線"><a href="#驗證連線" class="headerlink" title="驗證連線"></a>驗證連線</h3><ul>
+<li>從外部的主機, 可以驗證名稱解析是否正確</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171252850.png"></p>
+<ul>
+<li>從外部的主機, 開啟瀏覽器, 連線到 Application Gateway 所設定的網站是否可以正常存取</li>
+</ul>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011171302503.png" alt="image-20211011171302503"></p>
+<hr>
+<h2 id="參考"><a href="#參考" class="headerlink" title="參考"></a>參考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/app-service/environment/intro">Azure App Service Environment</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/application-gateway/overview">Azure Application Gateway</a> </li>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/app-service/environment/create-ilb-ase">Create an ILB ASE with ARM - Azure App Service Environment</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/app-service/environment/create-from-template">Create an ASE with ARM - Azure App Service Environment</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/dns/private-dns-getstarted-portal">Quickstart - Create an Azure private DNS zone using the Azure portal</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/App-Service-Environment/" rel="tag"># App Service Environment</a>
+              <a href="/tags/ASEv3/" rel="tag"># ASEv3</a>
+              <a href="/tags/Application-Gateway/" rel="tag"># Application Gateway</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/05/create-an-asev3-from-arm-templates/" rel="prev" title="Create an ASEv3 from ARM templates">
+      <i class="fa fa-chevron-left"></i> Create an ASEv3 from ARM templates
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E6%B1%BA%E6%A2%9D%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">先決條件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ILB-ASE-%E7%92%B0%E5%A2%83"><span class="nav-number">1.1.</span> <span class="nav-text">ILB ASE 環境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A7%81%E6%9C%89-DNS-%E5%8D%80%E5%9F%9F"><span class="nav-number">1.2.</span> <span class="nav-text">私有 DNS 區域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#App-Service-on-ILB-ASE"><span class="nav-number">1.3.</span> <span class="nav-text">App Service on ILB ASE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#App-Service-%E7%9A%84%E7%B6%B2%E5%9F%9F%E5%90%8D%E7%A8%B1"><span class="nav-number">1.4.</span> <span class="nav-text">App Service 的網域名稱</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AC%E9%96%8B%E7%99%BC%E8%A1%8C%E4%B8%94%E6%9C%89%E6%95%88%E7%9A%84%E6%86%91%E8%AD%89"><span class="nav-number">1.5.</span> <span class="nav-text">公開發行且有效的憑證</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B-Application-Gateway"><span class="nav-number">2.</span> <span class="nav-text">建立 Application Gateway</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%9E-Azure-Portal-%E5%BB%BA%E7%AB%8B-Application-Gateway"><span class="nav-number">2.1.</span> <span class="nav-text">從 Azure Portal 建立 Application Gateway</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Basics-%E8%A8%AD%E5%AE%9A"><span class="nav-number">2.2.</span> <span class="nav-text">Basics 設定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Frontends-%E8%A8%AD%E5%AE%9A"><span class="nav-number">2.3.</span> <span class="nav-text">Frontends 設定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Backends-%E8%A8%AD%E5%AE%9A"><span class="nav-number">2.4.</span> <span class="nav-text">Backends 設定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuration-%E8%A8%AD%E5%AE%9A"><span class="nav-number">2.5.</span> <span class="nav-text">Configuration 設定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E5%90%88-Application-Gateway-%E8%A8%AD%E5%AE%9A"><span class="nav-number">3.</span> <span class="nav-text">整合 Application Gateway 設定</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Private-DNS-Zone-%E8%99%9B%E6%93%AC%E7%B6%B2%E8%B7%AF%E9%80%A3%E7%B5%90%E8%A8%AD%E5%AE%9A"><span class="nav-number">3.1.</span> <span class="nav-text">Private DNS Zone 虛擬網路連結設定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A8%AD%E5%AE%9A-Health-Probe"><span class="nav-number">3.2.</span> <span class="nav-text">設定 Health Probe</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A8%AD%E5%AE%9A-DNS-%E5%B0%8D%E6%87%89"><span class="nav-number">3.3.</span> <span class="nav-text">設定 DNS 對應</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A9%97%E8%AD%89%E9%80%A3%E7%B7%9A"><span class="nav-number">3.4.</span> <span class="nav-text">驗證連線</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">參考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Sam Lin"
+      src="/images/avator.png">
+  <p class="site-author-name" itemprop="name">Sam Lin</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/samlin-msft" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;samlin-msft" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/samlintw" title="Linkedin → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;samlintw" rel="noopener" target="_blank"><i class="fab fa-linkedin fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sam Lin</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://samlin-msft-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://samlin-msft.github.io/2021/10/11/integrate-ilb-asev3-with-application-gateway/";
+    this.page.identifier = "2021/10/11/integrate-ilb-asev3-with-application-gateway/";
+    this.page.title = "Integrate ILB ASEv3 with Application Gateway";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://samlin-msft-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>
