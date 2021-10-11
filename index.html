@@ -205,7 +205,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-10-12 02:37:33" itemprop="dateModified" datetime="2021-10-12T02:37:33+08:00">2021-10-12</time>
+                <time title="Modified: 2021-10-12 02:50:52" itemprop="dateModified" datetime="2021-10-12T02:50:52+08:00">2021-10-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -311,7 +311,7 @@
 <h2 id="建立-Application-Gateway"><a href="#建立-Application-Gateway" class="headerlink" title="建立 Application Gateway"></a>建立 Application Gateway</h2><p>本範例將使用 Azure Portal 建立 Application Gateway 整合 ILB ASE 環境</p>
 <h3 id="從-Azure-Portal-建立-Application-Gateway"><a href="#從-Azure-Portal-建立-Application-Gateway" class="headerlink" title="從 Azure Portal 建立 Application Gateway"></a>從 Azure Portal 建立 Application Gateway</h3><p>開啟 Azure Portal, 選取 <strong>“New”</strong> &gt; <strong>“Network”</strong> &gt; <strong>“Application Gateway”</strong> 建立 Application Gateway</p>
 <h3 id="Basics-設定"><a href="#Basics-設定" class="headerlink" title="Basics 設定"></a>Basics 設定</h3><p>依照設定精靈, 在 Basics 設定選項中, 您需要設定必要的參數, 其中在 <strong>“Tier”</strong> 下拉清單中, 您可以選擇 WAF V2 附加 WAF 功能或 Standard V2 暫時不附加 WAF 功能, 您可在設定完成後再行附加 WAF 功能.</p>
-<p>![image-20211011170309171.png] (image-20211011170309171.png)</p>
+<p><img src="/2021/10/11/integrate-ilb-asev3-with-application-gateway/image-20211011170309171.png" alt="image-20211011170309171.png"></p>
 <h3 id="Frontends-設定"><a href="#Frontends-設定" class="headerlink" title="Frontends 設定"></a>Frontends 設定</h3><p>在 Frontends 設定選項中, 您需要決定 Application Gateway 所接聽的 IP 為公開或私有, 或兩者皆指派, 若您選取私有 IP, 您必須指派 Application Gateway Subnet 中尚未被使用的靜態 IP 做為私有 IP. 本範例以公開 IP 設定為例.</p>
 <ul>
 <li>公開 IP - 您需要綁定一個公開 IP 做為 Application Gateway 公開存取端點. 請紀錄這個 IP, 後續新增 DNS 記錄時會需要使用.</li>
