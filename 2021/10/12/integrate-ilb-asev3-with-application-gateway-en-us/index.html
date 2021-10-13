@@ -60,7 +60,7 @@
 <meta property="og:image" content="https://samlin-msft.github.io/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171252850.png">
 <meta property="og:image" content="https://samlin-msft.github.io/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171302503.png">
 <meta property="article:published_time" content="2021-10-11T22:29:32.000Z">
-<meta property="article:modified_time" content="2021-10-12T17:31:42.132Z">
+<meta property="article:modified_time" content="2021-10-13T16:36:22.827Z">
 <meta property="article:author" content="Sam Lin">
 <meta property="article:tag" content="App Service Environment">
 <meta property="article:tag" content="ASEv3">
@@ -236,7 +236,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-10-13 01:31:42" itemprop="dateModified" datetime="2021-10-13T01:31:42+08:00">2021-10-13</time>
+                <time title="Modified: 2021-10-14 00:36:22" itemprop="dateModified" datetime="2021-10-14T00:36:22+08:00">2021-10-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -277,7 +277,7 @@
 <li>A private DNS zone for ILB App Service Environment.</li>
 <li>An app running in the ILB App Service Environment.</li>
 <li>A public DNS name that is used later to point to your Application Gateway.</li>
-<li>A valid public certificate that is used to bind to your Application Gateway.</li>
+<li>A valid public certificate that is used later to bind to your Application Gateway.</li>
 </ul>
 <h3 id="ILB-App-Service-Environment"><a href="#ILB-App-Service-Environment" class="headerlink" title="ILB App Service Environment"></a>ILB App Service Environment</h3><p>For details on how to create an ILB App Service Environment from Azure portal, see <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/app-service/environment/creation">Create an App Service Environment</a> or create from template, see <a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/app-service/environment/create-from-template">Create an ASE with ARM - Azure App Service Environment</a></p>
 <ul>
@@ -285,10 +285,10 @@
 </ul>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011155312176.png" alt="image-20211011155312176"></p>
 <ul>
-<li>An internal load balancer had be provisioned for inbound access. You can check the Inbound address in the IP addresses under ASE Settings plane. You will need to create a private DNS zone mapped to this IP address.</li>
+<li>An internal load balancer had be provisioned for inbound access. You can check the Inbound address in the IP addresses under ASE Settings plane. You will need to create a private DNS zone mapped to this IP address later.</li>
 </ul>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011160529160.png" alt="image-20211011160529160"></p>
-<h3 id="Private-DNS-Zone"><a href="#Private-DNS-Zone" class="headerlink" title="Private DNS Zone"></a>Private DNS Zone</h3><p>You will need a private DNS zone for internal name resolution. If you didn’t configure private DNS zone while creating ASE, you have to create a private DNS after ASE created. To create a private DNS zone on Azure Portal, see <a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/dns/private-dns-getstarted-portal">Quickstart - Create an Azure private DNS zone using the Azure portal</a>, the record sets listed a below,</p>
+<h3 id="Private-DNS-Zone"><a href="#Private-DNS-Zone" class="headerlink" title="Private DNS Zone"></a>Private DNS Zone</h3><p>You will need a private DNS zone for internal name resolution. If you didn’t configure private DNS zone while creating ASE, you have to create a private DNS zone after ASE created. To create a private DNS zone on Azure Portal, see <a target="_blank" rel="noopener" href="https://docs.microsoft.com/azure/dns/private-dns-getstarted-portal">Quickstart - Create an Azure private DNS zone using the Azure portal</a>, the record sets listed a below,</p>
 <table>
 <thead>
 <tr>
@@ -319,15 +319,15 @@
 </tr>
 </tbody></table>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011155613716.png" alt="image-20211011155613716"></p>
-<h3 id="App-Service-on-ILB-ASE"><a href="#App-Service-on-ILB-ASE" class="headerlink" title="App Service on ILB ASE"></a>App Service on ILB ASE</h3><p>You will need to create an app service and an app service plan reside in an ILB ASE. To create an app service in an ILB ASE on Azure Portal, when configure the <strong>Basics</strong> setting, you need to pick the ILB ASE you created previously in the <strong>Region</strong> dropdown list.</p>
+<h3 id="App-Service-on-ILB-ASE"><a href="#App-Service-on-ILB-ASE" class="headerlink" title="App Service on ILB ASE"></a>App Service on ILB ASE</h3><p>You will need to create an app service and an app service plan reside in an ILB ASE. To create an app service in an ILB ASE on Azure Portal, in app creation <strong>Basics</strong> setting, you need to pick the ILB ASE you created previously in the <strong>Region</strong> dropdown list.</p>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011164224837.png" alt="image-20211011164224837"></p>
-<h3 id="App-Service-DNS-name"><a href="#App-Service-DNS-name" class="headerlink" title="App Service DNS name"></a>App Service DNS name</h3><p>In order to connect to Application Gateway from internet, you need a routable public domain name. In this case, I used a routable public domain name <code>asabuludemo.com</code> and planning to connect to an app service with this domain name <code>app.asabuludemo.com</code>. The IP address mapped to this app domain name need to set to the public IP after Application Gateway created.</p>
-<h3 id="A-valid-public-certificate"><a href="#A-valid-public-certificate" class="headerlink" title="A valid public certificate"></a>A valid public certificate</h3><p>For security reason, it’s strong recommended to bind TLS/SSL certificate for session encryption. To bind TLS/SSL certificate to Application Gateway, you need a valid public certificate, the <strong>Common Name</strong> (<strong>CN</strong>) and <strong>Subject Alternative Name</strong> (<strong>SAN</strong>) of certificate should be below,</p>
+<h3 id="App-Service-DNS-name"><a href="#App-Service-DNS-name" class="headerlink" title="App Service DNS name"></a>App Service DNS name</h3><p>In order to connect to Application Gateway from internet, you need a routable domain name. In this case, I used a routable domain name <code>asabuludemo.com</code> and planning to connect to an app service with this domain name <code>app.asabuludemo.com</code>. The IP address mapped to this app domain name need to set to the public IP after Application Gateway created.</p>
+<h3 id="A-valid-public-certificate"><a href="#A-valid-public-certificate" class="headerlink" title="A valid public certificate"></a>A valid public certificate</h3><p>For security enhancement, it is recommended to bind TLS/SSL certificate for session encryption. To bind TLS/SSL certificate to Application Gateway, you need a valid public certificate, the <strong>Common Name</strong> (<strong>CN</strong>) and <strong>Subject Alternative Name</strong> (<strong>SAN</strong>) of certificate should be below,</p>
 <ul>
 <li><strong>Common Name</strong>: <code>*.&lt;yourdomainname&gt;</code>, for example: <code>*.asabuludemo.com</code></li>
-<li><strong>Subject Alternative Name</strong>: <code>*.scm.&lt;yourdomainname&gt;</code> for example: <code>*.scm.asabuludemo.com</code>. This <strong>SAN</strong> allow the connect to app service kudo service. This is an optional requirement, if you don’t want to publish the app service kudo service to the internet. </li>
+<li><strong>Subject Alternative Name</strong>: <code>*.scm.&lt;yourdomainname&gt;</code> for example: <code>*.scm.asabuludemo.com</code>. This <strong>SAN</strong> allow to connect to app service kudo service. This is an optional setting, if you don’t want to publish the app service kudo service to the internet. </li>
 </ul>
-<p>The certificate file must contains the private kay and save to .pfx format, it will be imported to Application Gateway later.</p>
+<p>The certificate file must contains a private kay and save to .pfx format, it will be imported to Application Gateway later.</p>
 <h2 id="Create-an-Application-Gateway"><a href="#Create-an-Application-Gateway" class="headerlink" title="Create an Application Gateway"></a>Create an Application Gateway</h2><p>Before you start to create the Application Gateway, pick or create a subnet that you will use to host the gateway.</p>
 <p>You should use a subnet that is not the one named GatewaySubnet. If you put the Application Gateway in GatewaySubnet, you’ll be unable to create a virtual network gateway later.</p>
 <p>You also cannot put the gateway in the subnet that your ILB App Service Environment uses. The App Service Environment is the only thing that can be in this subnet.</p>
@@ -336,7 +336,7 @@
 <h3 id="Basics-setting"><a href="#Basics-setting" class="headerlink" title="Basics setting"></a>Basics setting</h3><p>In <strong>Basics</strong> setting, you need to input the required parameters. In <strong>Tier</strong> dropdown list, you can select <strong>Standard V2</strong> or  <strong>WAF V2</strong> to enable **WAF ** feature on Application Gateway. </p>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011170309171.png" alt="image-20211011170309171.png"></p>
 <h3 id="Frontends-setting"><a href="#Frontends-setting" class="headerlink" title="Frontends setting"></a>Frontends setting</h3><p>In <strong>Frontends</strong> setting, you need to select Frontend IP address type to <strong>Public</strong>, <strong>Private</strong> or <strong>Both</strong> . If you set to <strong>Private</strong></p>
-<p>or <strong>Both</strong>, you will need to assign a static IP address in Application Gateway subnet range. In this case, we set to Public IP only.</p>
+<p>or <strong>Both</strong>, you will need to assign a static IP address in Application Gateway subnet range. In this case, we set to Public IP for public endpoint only.</p>
 <ul>
 <li>Public IP address - You will need to associate a public IP address for Application Gateway public access. Record this IP address, you will need to add a record in your DNS service later.</li>
 </ul>
@@ -400,12 +400,12 @@
 <tr>
 <td>Host name</td>
 <td>For example:  app.asabuludemo.com</td>
-<td>set to a routable public domain for app service</td>
+<td>Set to a routable domain name for app service</td>
 </tr>
 </tbody></table>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011170557863.png" alt="image-20211011170557863"></p>
 <ul>
-<li>You will need to configure a <strong>Backend Pool</strong> and  <strong>HTTP setting</strong> in <strong>Backend targets</strong>. The Backend pool had been configured in previously steps. You need to add a HTTP setting.</li>
+<li>You will need to configure a <strong>Backend Pool</strong> and  <strong>HTTP setting</strong> in <strong>Backend targets</strong>. The Backend pool was configured in previously steps. You need to add a HTTP setting.</li>
 </ul>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011170819884.png" alt="image-20211011170819884"></p>
 <ul>
@@ -437,7 +437,7 @@
 <tr>
 <td>Use well known CA certificate</td>
 <td>Yes</td>
-<td>The default domain name of ILB ASE is <strong><em><aseName></em>.appserviceenvironment.net</strong>, the certificate of this domain is issued by an public trusted root authority. In the Trusted root certificate setting, you can set to use <strong>well known CA trusted root certificate</strong>.</td>
+<td>The default domain name of ILB ASE is <strong>.appserviceenvironment.net</strong>, the certificate of this domain is issued by an public trusted root authority. In the Trusted root certificate setting, you can set to use <strong>well known CA trusted root certificate</strong>.</td>
 </tr>
 <tr>
 <td>Override with new host name</td>
@@ -446,12 +446,12 @@
 </tr>
 <tr>
 <td>Host name override</td>
-<td>Override with specific domain name<br />For example: <strong>app.<em><aseName></em>.appserviceenvironment.net</strong></td>
+<td>Override with specific domain name<br />For example: app.asev3-ilb-20211008.appserviceenvironment.net</td>
 <td>Set host name to the private DNS record of the app on ILB ASE</td>
 </tr>
 </tbody></table>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011170719016.png" alt="image-20211011170719016"></p>
-<h2 id="Configure-Application-Gateway-integration-with-ILB-ASE"><a href="#Configure-Application-Gateway-integration-with-ILB-ASE" class="headerlink" title="Configure Application Gateway integration with ILB ASE"></a>Configure Application Gateway integration with ILB ASE</h2><p>After the Application Gateway had been created, there is a health probe been provisioned. The health probe name is <em><httpsettings>-<GUID></em>. You may encounter an error as below when check the health probes. One of the reasons that Application Gateway probe cannot access to backend is failed to private domain name resolution. To fix this issue, you need to add an virtual network link to private DNS zone.</p>
+<h2 id="Configure-Application-Gateway-integration-with-ILB-ASE"><a href="#Configure-Application-Gateway-integration-with-ILB-ASE" class="headerlink" title="Configure Application Gateway integration with ILB ASE"></a>Configure Application Gateway integration with ILB ASE</h2><p>After the Application Gateway had been created, there is a health probe had been provisioned. The health probe name is <em>httpsettings-{GUID}</em>. You may encounter an error as below when check the health probes. One of the reasons that Application Gateway probe cannot access to backend is failed to resolve the private domain name. To fix this issue, you need to add an virtual network link to private DNS zone.</p>
 <p><code>Cannot connect to backend server. Check whether any NSG/UDR/Firewall is blocking access to the server. Check if application is running on correct port.</code></p>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011170904979.png" alt="image-20211011170904979"></p>
 <h3 id="Configure-virtual-network-links-with-private-DNS-zone"><a href="#Configure-virtual-network-links-with-private-DNS-zone" class="headerlink" title="Configure virtual network links with private DNS zone"></a>Configure virtual network links with private DNS zone</h3><ul>
@@ -464,7 +464,7 @@
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011170928311.png"></p>
 <h3 id="Configure-Health-Probe"><a href="#Configure-Health-Probe" class="headerlink" title="Configure Health Probe"></a>Configure Health Probe</h3><p>You can recreate the health probe to replace the default health probe when Application Gateway created. To configure the health probe, the key parameters listed as below,</p>
 <ul>
-<li>Health Probe parameters:</li>
+<li>Health Probe settings:</li>
 </ul>
 <table>
 <thead>
@@ -486,7 +486,7 @@
 </tr>
 <tr>
 <td>Host</td>
-<td>For example:  <strong>app.<em><aseName></em>.appserviceenvironment.net</strong></td>
+<td>For example:  app.asev3-ilb-20211008.appserviceenvironment.net</td>
 <td>Set host name to the private DNS record of the app on ILB ASE</td>
 </tr>
 <tr>
@@ -511,13 +511,13 @@
 </tr>
 </tbody></table>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171017076.png" alt="image-20211011171017076"></p>
-<p>Test the backend health, once the status is green, add to the Application Gateway</p>
+<p>Click Test button to test the backend health. Once the status is green, add to the Application Gateway.</p>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171028680.png" alt="image-20211011171028680"></p>
 <ul>
 <li>Also confirm the backend health status from <strong>Backend health</strong> in the Application Gateway plane.</li>
 </ul>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171112275.png" alt="image-20211011171112275"></p>
-<h3 id="Add-a-DNS-record"><a href="#Add-a-DNS-record" class="headerlink" title="Add a DNS record"></a>Add a DNS record</h3><p>You will need to configure a proper DNS mapping when access to Application Gateway from internet</p>
+<h3 id="Add-a-DNS-record"><a href="#Add-a-DNS-record" class="headerlink" title="Add a DNS record"></a>Add a DNS record</h3><p>You will need to configure a proper DNS mapping when access to Application Gateway from internet.</p>
 <ul>
 <li>The public IP address of Application Gateway can be found in <strong>Frontend IP configurations</strong> in Application Gateway plane.</li>
 </ul>
@@ -531,7 +531,7 @@
 </ul>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171252850.png"></p>
 <ul>
-<li>On a machine access from internet, you can open a browser to see if you can access the app without issue.</li>
+<li>On a machine access from internet, test the web access from a browser.</li>
 </ul>
 <p><img src="/2021/10/12/integrate-ilb-asev3-with-application-gateway-en-us/image-20211011171302503.png" alt="image-20211011171302503"></p>
 <hr>
