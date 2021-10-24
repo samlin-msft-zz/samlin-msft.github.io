@@ -206,7 +206,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-10-24 22:55:04" itemprop="dateModified" datetime="2021-10-24T22:55:04+08:00">2021-10-24</time>
+                <time title="Modified: 2021-10-24 23:05:16" itemprop="dateModified" datetime="2021-10-24T23:05:16+08:00">2021-10-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -246,11 +246,11 @@
 <p>(1) 從 Azure Portal 網站中選取 <strong>App Service</strong> &gt; <strong>Networking</strong> &gt; <strong>VNet integration</strong> 啟用區域虛擬網路整合</p>
 </li>
 </ul>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024111248543.png" alt="image-20211024111248543"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024111248543.png" alt="image-20211024111248543"></p>
 <p>​        (2) 選取 <strong>+ Add VNet</strong> &gt; 選取 <strong>Subscription</strong> &gt; 選取與 App Service 相同區域的 <strong>Virtual Network</strong> &gt; <strong>Select Existing</strong> &gt; 選取現有的 <strong>Subnet</strong></p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024111829054.png" alt="image-20211024111829054"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024111829054.png" alt="image-20211024111829054"></p>
 <p>​        (3) 設定完成後，預設設定如下：</p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024112205239.png" alt="image-20211024112205239"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024112205239.png" alt="image-20211024112205239"></p>
 <h2 id="整合-Azure-Firewall-與路由表-Route-Table-UDR"><a href="#整合-Azure-Firewall-與路由表-Route-Table-UDR" class="headerlink" title="整合 Azure Firewall 與路由表 (Route Table/UDR)"></a>整合 Azure Firewall 與路由表 (Route Table/UDR)</h2><p><strong>Azure Firewall</strong> 是一個用以保護 Azure 雲端資源的可以自動擴展以及高可用性的網路安全服務。在 Azure Firewall 中，您可建立應用程式與網路連線原則以控管網路流量，提供偵測與保護的功能。關於 Azure Firewall 的功能可以參考 <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/firewall/features">Azure Firewall features</a>。</p>
 <p>Azure <strong>路由表</strong>是 Azure 虛擬網路個子網路的流量流向的一個對照表。Azure 網路預設會有一個系統路由，在服務建立時會自動加入包含網路位址前綴以及下一個跳躍點 (next hop) 紀錄。關於系統路由的資訊可以參考 <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#default">Azure virtual network traffic routing</a>。</p>
 <p>您可以透過創建自定義的路由表 (<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined">user-defined</a> routes/UDR) 控制網路流向的對照表，常見的使用情境是藉由新增特定的網路位址前綴所對應的下一個跳躍點到網路設備如 Azure Firewall 以控管網路流量。</p>
@@ -259,33 +259,33 @@
 <ul>
 <li>取得 Azure Firewall 私有 IP 位址 - 您需要從新建或既有的 Azure Firewall 取得私有 IP 位址以便設定路由表的下一個跳躍點。</li>
 </ul>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024201542112.png" alt="image-20211024201542112"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024201542112.png" alt="image-20211024201542112"></p>
 <ul>
 <li><p>設定防火牆原則 - 若要在 Azure Firewall 上控管 App Service outbound 流量，可以先取得 App Service 的私有 IP 位址以便在防火牆原則設定規則。</p>
 <p>(1) App Service 的私有 IP 位址可以從 App Service Kudu 服務取得 <code>WEBSITE_PRIVATE_IP</code> 環境變數資訊。開啟瀏覽器，輸入 <code>https://appname.scm.azurewebsites.net</code> 可以進入 App Service Kudu 服務後台，點選 <strong>Environment</strong> 再找尋 <code>WEBSITE_PRIVATE_IP</code> 環境變數可以取得 App Service 的私有 IP 位址資訊。</p>
 </li>
 </ul>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024203020350.png" alt="image-20211024203020350"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024203020350.png" alt="image-20211024203020350"></p>
 <p>​        (2) 設定網路規則 - 允許 App Service 通過 Azure Firewall 對外連線可以設定以下的網路規則。在 <strong>Azure Firewall Policy</strong> &gt; 選取 <strong>Network Rules</strong> &gt; 選取 <strong>+ Add a rule collection</strong> 新增一個允許 App Service 私有 IP 位址來源的網路規則如下：</p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024205357250.png" alt="image-20211024205357250"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024205357250.png" alt="image-20211024205357250"></p>
 <h3 id="設定路由表"><a href="#設定路由表" class="headerlink" title="設定路由表"></a>設定路由表</h3><p>Azure Firewall 規則建立後，您需要在 App Service 區域虛擬網路整合的子網路上關連到一個自定義的路由表 (UDR)，以便將 App outbound 流量指向到 Azure Firewall 上。</p>
 <p>​        (1) 建立一個 <strong>路由表 (Route Table)</strong></p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024211106577.png" alt="image-20211024211106577"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024211106577.png" alt="image-20211024211106577"></p>
 <p>​        (2) 新增一筆 Route 規則將預設流量 (<strong>0.0.0.0/0</strong>) 前綴以及下一個跳躍點 (<strong>next hop</strong>) 指向 Azure Firewall 私有 IP 地址</p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024213847265.png" alt="image-20211024213847265"></p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024214049697.png" alt="image-20211024214049697"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024213847265.png" alt="image-20211024213847265"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024214049697.png" alt="image-20211024214049697"></p>
 <p>​        (3) 將路由表關連到 App Service 設定區域虛擬網路的子網路上</p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024214255296.png" alt="image-20211024214255296"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024214255296.png" alt="image-20211024214255296"></p>
 <h2 id="vnetRouteAllEnabled-或-WEBSITE-VNET-ROUTE-ALL-網站設定"><a href="#vnetRouteAllEnabled-或-WEBSITE-VNET-ROUTE-ALL-網站設定" class="headerlink" title="vnetRouteAllEnabled 或 WEBSITE_VNET_ROUTE_ALL 網站設定"></a><code>vnetRouteAllEnabled</code> 或 <code>WEBSITE_VNET_ROUTE_ALL</code> 網站設定</h2><p>App Service 啟用區域虛擬網路整合時，預設會將 <code>vnetRouteAllEnabled</code> 屬性啟用，如下圖 (1)。在早期版本的 App Service 只有開放設定網站設定 <code>WEBSITE_VNET_ROUTE_ALL</code> = <code>1</code>，若您需要使用網站設定啟用，請參考下圖 (2)，或使用 az cli 設定範例如下。當這個屬性未設定時，App Service outbound 流量目的 IP 位址為 RFC1918 規範定義的私有 IP 位址以及區域虛擬網路整合的子網路上有設定為服務端點 (Service endpoints) 的流量才會送往虛擬網路，若將此屬性開啟時，則所有的 outbound 流量都會送往虛擬網路。</p>
 <p>註：目前區域虛擬網路整合尚未支持 Port 25 的流量。</p>
 <ul>
 <li>圖 (1)</li>
 </ul>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024214828917.png" alt="image-20211024214828917"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024214828917.png" alt="image-20211024214828917"></p>
 <ul>
 <li>圖 (2)</li>
 </ul>
-<p><img src="/locking-down-an-app-service-zhtw/vnetint-appsetting.png" alt="image-vnetint-appsetting"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/vnetint-appsetting.png" alt="image-vnetint-appsetting"></p>
 <ul>
 <li>az cli 設定</li>
 </ul>
@@ -295,9 +295,9 @@
 <h2 id="App-Service-與服務端點-Service-Endpoints"><a href="#App-Service-與服務端點-Service-Endpoints" class="headerlink" title="App Service 與服務端點 (Service Endpoints)"></a>App Service 與服務端點 (Service Endpoints)</h2><p>App Service Outbound 存取到 Azure 服務的流量預設會跟存取 Internet 路由相同，若啟用區域虛擬網路整合功能，提供一種可以將存取 Azure 服務流量路由經由微軟雲端骨幹直接存取到 Azure 服務，這個設定是關連到區域虛擬網路整合中的子網路上設定服務端點 (Service Endpoints)，透過這個設定具有強化安全性以及最佳化 Azure 服務流量與易於設定管理的優點。關於服務端點資訊可以參考 <a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview">Azure virtual network service endpoints</a>。</p>
 <h3 id="設定服務端點"><a href="#設定服務端點" class="headerlink" title="設定服務端點"></a>設定服務端點</h3><p>以下以區域虛擬網路整合中的子網路上設定 Storage 服務端點為範例。</p>
 <p>開啟 App Service 整合的 <strong>虛擬網路</strong> &gt; 選取 <strong>Service endpoints</strong> &gt; <strong>+ Add</strong> &gt; 選取 <strong>Microsoft.Storage</strong> 服務 &gt; 選取 App Service 的<strong>子網路</strong></p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211024222801645.png" alt="image-20211024222801645"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211024222801645.png" alt="image-20211024222801645"></p>
 <h2 id="App-Service-outbound-流量控管"><a href="#App-Service-outbound-流量控管" class="headerlink" title="App Service outbound 流量控管"></a>App Service outbound 流量控管</h2><p>根據<strong>區域虛擬網路整合</strong>、<strong>vnetRouteAllEnabled</strong>、<strong>路由表</strong>和<strong>服務端點</strong>設定，在 App Service outbound 流量路徑例圖如下：</p>
-<p><img src="/locking-down-an-app-service-zhtw/image-20211023175706922.png" alt="image-20211023175706922"></p>
+<p><img src="/2021/10/22/locking-down-an-app-service-zhtw/image-20211023175706922.png" alt="image-20211023175706922"></p>
 <p>整理設定組合與 Public IP 位址、Private IP 位址，以及 Azure 服務流量路徑列表如下:</p>
 <table>
 <thead>
